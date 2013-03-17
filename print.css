@@ -1,0 +1,7 @@
+/**
+ * Print Styles for GView plugin
+ */
+
+div.tpl_gview iframe {
+	display: none;
+}

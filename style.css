@@ -1,0 +1,10 @@
+/**
+ * GView plugin CSS
+ */
+
+div.tpl_gview{
+	margin:0;
+	color: grey;
+	background-color: transparent;
+	font-size: 70%;
+}
