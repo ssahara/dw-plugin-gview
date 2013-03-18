@@ -28,9 +28,9 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
     public function getPType() { return 'normal'; }
     public function getSort()  { return 305; }
     public function connectTo($mode) {
-		//$this->Lexer->addSpecialPattern('{{gview>.*?}}',$mode,'plugin_gview');
-		$this->Lexer->addSpecialPattern('{{gview>{{[^}\n]+}}[^}\n]*}}',$mode,'plugin_gview');
-		$this->Lexer->addSpecialPattern('{{gview>[^}\n]+}}',$mode,'plugin_gview');
+        //$this->Lexer->addSpecialPattern('{{gview>.*?}}',$mode,'plugin_gview');
+        $this->Lexer->addSpecialPattern('{{gview>{{[^}\n]+}}[^}\n]*}}',$mode,'plugin_gview');
+        $this->Lexer->addSpecialPattern('{{gview>[^}\n]+}}',$mode,'plugin_gview');
     }
 
  /**
@@ -40,25 +40,25 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
         //global $conf;
 
         $match = trim(substr($match,8,-2));  // strip markup
-       	$opts = array( // set default
-       	             'url'  => '',
-       	             'title'  => $this->getLang('gview_linktext'),
-       	             'width'   => '100%',
-       	             'height'  => '300px',
-       	             'border'  => true,
-       	             'embedded' => true,
-       	             'reference'  => true,
-       	             );
+        $opts = array( // set default
+                     'url'  => '',
+                     'title'  => $this->getLang('gview_linktext'),
+                     'width'   => '100%',
+                     'height'  => '300px',
+                     'border'  => false,
+                     'embedded' => true,
+                     'reference'  => true,
+                     );
 
         // get url for viewer
         if (preg_match('/(https?:\/\/[^ |} ]+)[ |}]/u', $match, $matches)) {
-        	$opts['url'] = $matches[1];
+            $opts['url'] = $matches[1];
         }
         // get title (linktext)
         if (preg_match('/\|([^}]+)}/', $match, $matches)) {
-        	$opts['title'] = $matches[1];
+            $opts['title'] = $matches[1];
         } elseif (preg_match('/\|(\w+) /u', $match, $matches)) {
-        	$opts['title'] = $matches[1];
+            $opts['title'] = $matches[1];
         }
 
         $tokens = preg_split('/\s+/', $match);
@@ -67,34 +67,34 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
             // get width and height of iframe
             $matches=array();
             if (preg_match('/\[?(\d+(%|em|pt|px)?)\s*([,xX]\s*(\d+(%|em|pt|px)?))?\]?/',$token,$matches)){
-              if ($matches[4]) {
-                // width and height was given
-                $opts['width'] = $matches[1];
-                if (!$matches[2]) $opts['width'].= 'px'; //default to pixel when no unit was set
-                $opts['height'] = $matches[4];
-                if (!$matches[5]) $opts['width'].= 'px'; //default to pixel when no unit was set
-              } elseif ($matches[2]) {
-                // only height was given
-                $opts['height'] = $matches[1];
-                if (!$matches[2]) $opts['height'].= 'px'; //default to pixel when no unit was set
-              }
-              continue;
+                if ($matches[4]) {
+                    // width and height was given
+                    $opts['width'] = $matches[1];
+                    if (!$matches[2]) $opts['width'].= 'px'; //default to pixel when no unit was set
+                    $opts['height'] = $matches[4];
+                    if (!$matches[5]) $opts['width'].= 'px'; //default to pixel when no unit was set
+                } elseif ($matches[2]) {
+                    // only height was given
+                    $opts['height'] = $matches[1];
+                    if (!$matches[2]) $opts['height'].= 'px'; //default to pixel when no unit was set
+                }
+                continue;
             }
             // get border option
-            if (preg_match('/no(frame)?border/',$token)){
-              $opts['border'] = false;
-              continue;
+            if (preg_match('/no(frame)?border/',$token)) {
+                $opts['border'] = false;
+                continue;
             }
             // get reference option, ie. whether show original document url?
             if (preg_match('/noreference/',$token)){
-              $opts['reference'] = false;
-              continue;
+                $opts['reference'] = false;
+                continue;
             }
             // get embed option
             if (preg_match('/noembed(ded)?/',$token)){
-              $opts['embedded'] = false;
-              $opts['reference'] = false;
-              continue;
+                $opts['embedded'] = false;
+                $opts['reference'] = false;
+                continue;
             }
         }
         return array($state, $opts);
@@ -114,22 +114,22 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
         $referencelink = '<a href="'.$opts['url'].'">'.$opts['url'].'</a>';
 
         $html.= '<div class="tpl_gview">'.NL;
-        if ($opts['reference']){
-          $html.= sprintf($this->getLang('gview_reference_msg'), $referencelink).NL;
+        if ($opts['reference']) {
+            $html.= sprintf($this->getLang('gview_reference_msg'), $referencelink).NL;
         }
-        if ($opts['embedded']){
-          $html.= '<iframe src="'.$viewerurl;
-          $html.= '?url='.urlencode( $opts['url']);
-          $html.= '&embedded=true"';
-          $html.= ' style="';
-          if ($opts['width'])  { $html.= ' width: '.$opts['width'].';'; }
-          if ($opts['height']) { $html.= ' height: '.$opts['height'].';'; }
-          if ($opts['border'] == false) { $html.= ' border: none;'; }
-          $html.= '"></iframe>'.NL;
+        if ($opts['embedded']) {
+            $html.= '<iframe src="'.$viewerurl;
+            $html.= '?url='.urlencode( $opts['url']);
+            $html.= '&embedded=true"';
+            $html.= ' style="';
+            if ($opts['width'])  { $html.= ' width: '.$opts['width'].';'; }
+            if ($opts['height']) { $html.= ' height: '.$opts['height'].';'; }
+            if ($opts['border'] == false) { $html.= ' border: none;'; }
+            $html.= '"></iframe>'.NL;
         } else {
-          $html.= '<a href="'.$viewerurl;
-          $html.= '?url='.urlencode( $opts['url']);
-          $html.= '">'.$opts['title'].'</a>'.NL;
+            $html.= '<a href="'.$viewerurl;
+            $html.= '?url='.urlencode( $opts['url']);
+            $html.= '">'.$opts['title'].'</a>'.NL;
         }
         $html.= '</div>'.NL;
         $renderer->doc.=$html;
