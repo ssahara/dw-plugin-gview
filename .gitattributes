@@ -1,0 +1,5 @@
+# .gitattributes for repository dw-plugin-gview
+.gitattibutes	export-ignore
+.gitignore	export-ignore
+gview.png	export-ignore
+README.md	export-ignore

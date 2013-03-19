@@ -55,7 +55,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
             $opts['url'] = $matches[1];
         }
         // get title (linktext)
-        if (preg_match('/\|([^}]+)}/', $match, $matches)) {
+        if (preg_match('/\|([^}]+)}/u', $match, $matches)) {
             $opts['title'] = $matches[1];
         } elseif (preg_match('/\|(\w+) /u', $match, $matches)) {
             $opts['title'] = $matches[1];
@@ -66,7 +66,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
 
             // get width and height of iframe
             $matches=array();
-            if (preg_match('/\[?(\d+(%|em|pt|px)?)\s*([,xX]\s*(\d+(%|em|pt|px)?))?\]?/',$token,$matches)){
+            if (preg_match('/(\d+(%|em|pt|px)?)\s*([,xX]\s*(\d+(%|em|pt|px)?))?/',$token,$matches)){
                 if ($matches[4]) {
                     // width and height was given
                     $opts['width'] = $matches[1];
@@ -115,7 +115,8 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
 
         $html.= '<div class="tpl_gview">'.NL;
         if ($opts['reference']) {
-            $html.= sprintf($this->getLang('gview_reference_msg'), $referencelink).NL;
+            $html.= sprintf($this->getLang('gview_reference_msg'), $referencelink);
+            $html.= '<br />'.NL;
         }
         if ($opts['embedded']) {
             $html.= '<iframe src="'.$viewerurl;
