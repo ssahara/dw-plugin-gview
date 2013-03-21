@@ -8,3 +8,9 @@ div.tpl_gview{
 	background-color: transparent;
 	font-size: 70%;
 }
+div.tpl_gview iframe{
+	border-top: none;
+	border-right: none;
+	border-bottom: 1px solid #eee;
+	border-left: 1px solid #eee;
+}

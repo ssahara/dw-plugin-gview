@@ -15,7 +15,7 @@
  * SYNTAX: {{gview> url}} 
  *         {{gview> url height}}
  *         {{gview> url width,height}}
- *         {{gview> url width,height noborder}}
+ *         {{gview> url width,height noreference}}
  */
 
 // must be run within Dokuwiki
@@ -45,9 +45,9 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
                      'title'  => $this->getLang('gview_linktext'),
                      'width'   => '100%',
                      'height'  => '300px',
-                     'border'  => false,
                      'embedded' => true,
                      'reference'  => true,
+                     'border'  => true,
                      );
 
         // get url for viewer
@@ -80,11 +80,6 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
                 }
                 continue;
             }
-            // get border option
-            if (preg_match('/no(frame)?border/',$token)) {
-                $opts['border'] = false;
-                continue;
-            }
             // get reference option, ie. whether show original document url?
             if (preg_match('/noreference/',$token)){
                 $opts['reference'] = false;
@@ -95,6 +90,11 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
                 $opts['embedded'] = false;
                 $opts['reference'] = false;
                 continue;
+            }
+            // get border option
+            if (preg_match('/no(frame)?border/',$token)){
+              $opts['border'] = false;
+              continue;
             }
         }
         return array($state, $opts);
