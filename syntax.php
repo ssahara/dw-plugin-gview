@@ -37,11 +37,10 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
   * handle syntax
   */
     public function handle($match, $state, $pos, &$handler){
-        //global $conf;
 
         $match = trim(substr($match,8,-2));  // strip markup
         $opts = array( // set default
-                     'url'  => '',
+                     'id'  => '',
                      'title'  => $this->getLang('gview_linktext'),
                      'width'   => '100%',
                      'height'  => '300px',
@@ -51,8 +50,12 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
                      );
 
         // get url for viewer
-        if (preg_match('/(https?:\/\/[^ |} ]+)[ |}]/u', $match, $matches)) {
-            $opts['url'] = $matches[1];
+        if (preg_match('/(https?:\/\/[^ |}]+)[ |}]/u', $match, $matches)) {
+            $url = $matches[1];
+        }
+        // get media ID stored data/media directory
+        if (preg_match('/(:[^ |}]+)[ |}]/u', $match, $matches)) {
+            $opts['id'] = $matches[1];
         }
         // get title (linktext)
         if (preg_match('/\|([^}]+)}/u', $match, $matches)) {
@@ -60,6 +63,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
         } elseif (preg_match('/\|(\w+) /u', $match, $matches)) {
             $opts['title'] = $matches[1];
         }
+        if ($url) $opts['id'] = $url;
 
         $tokens = preg_split('/\s+/', $match);
         foreach ($tokens as $token) {
@@ -104,23 +108,26 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
   * Render iframe or link for Google Docs Viewer Service
   */
     public function render($mode, &$renderer, $data) {
-        global $conf;
+
         $viewerurl = 'http://docs.google.com/viewer';
 
         if ($mode != 'xhtml') return false;
 
         list($state, $opts) = $data;
         //if ( $opts['url'] =='') return false;
-        $referencelink = '<a href="'.$opts['url'].'">'.$opts['url'].'</a>';
 
-        $html.= '<div class="tpl_gview">'.NL;
+        // make reference link
+        $url = $this->_gview_ml($opts['id']);
+        $referencelink = '<a href="'.$url.'">'.urldecode($url).'</a>';
+
+        $html = '<div class="tpl_gview">'.NL;
         if ($opts['reference']) {
             $html.= sprintf($this->getLang('gview_reference_msg'), $referencelink);
             $html.= '<br />'.NL;
         }
         if ($opts['embedded']) {
             $html.= '<iframe src="'.$viewerurl;
-            $html.= '?url='.urlencode( $opts['url']);
+            $html.= '?url='.urlencode($url);
             $html.= '&embedded=true"';
             $html.= ' style="';
             if ($opts['width'])  { $html.= ' width: '.$opts['width'].';'; }
@@ -128,12 +135,48 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
             if ($opts['border'] == false) { $html.= ' border: none;'; }
             $html.= '"></iframe>'.NL;
         } else {
-            $html.= '<a href="'.$viewerurl;
-            $html.= '?url='.urlencode( $opts['url']);
-            $html.= '">'.$opts['title'].'</a>'.NL;
+            $html.= '<a href="'.$viewerurl.'?url='.urlencode($url).'"';
+            $html.= ' title="'.urldecode($url).'"';
+            $html.= '>'.$opts['title'].'</a>'.NL;
         }
         $html.= '</div>'.NL;
         $renderer->doc.=$html;
         return true;
     }
+
+     /**
+      * Create Media Link from DokuWiki media id
+      * as to $conf['userewrite'] parameter.
+      * @see function ml() in inc/common.php
+      */
+    function _gview_ml($id ='') {
+        global $conf;
+        // external URLs are always direct without rewriting
+        if(preg_match('#^(https?|ftp)://#i', $id)) {
+            return $id;
+        }
+        if ($id === '') $id = $conf['start'];
+        $id = idfilter($id);
+        $xlink = DOKU_URL;
+        if ($conf['userewrite'] == 1) {
+            // rewrite module enabled in your web server
+            $xlink .= $id;
+        } else {
+            // !!! EXPERIMENTAL : WEB SITE SPECIFIC FEATURE !!!
+            // otherwise, assume "DOKU_URL/_media" directory 
+            // which physically mapped or linked to 
+            // your DW_DATA_PATH/media directory.
+            // WebServer solution includes htpd.conf, IIS virtual directory.
+            // Symbolic link or Junction are Filesystem solution.
+            // Example:
+            // if linux: ln -s DW_DATA_PATH/media _media
+            // if iis6(Win2003S): linkd.exe _media DW_DATA_PATH/media
+            // if iis7(Win2008S): mklink.exe /d _media DW_DATA_PATH/media
+            //
+            $xlink .= '_media';  // should be configurable in admin panel?
+            $xlink .= str_replace(':','/',$id);
+        }
+        return $xlink;
+    }
+
 }
