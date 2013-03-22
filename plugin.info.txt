@@ -1,7 +1,7 @@
 base   gview
 author Satoshi Sahara
 email  sahara.satoshi@gmail.com
-date   2013-03-21
+date   2013-03-22
 name   Google Document Viewer plugin
 desc   Show online document using Google Docs Viewer Service
 url    https://www.dokuwiki.org/plugin:gview
