@@ -77,12 +77,13 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
                     if (!$matches[2]) $opts['width'].= 'px'; //default to pixel when no unit was set
                     $opts['height'] = $matches[4];
                     if (!$matches[5]) $opts['width'].= 'px'; //default to pixel when no unit was set
+                    continue;
                 } elseif ($matches[2]) {
                     // only height was given
                     $opts['height'] = $matches[1];
                     if (!$matches[2]) $opts['height'].= 'px'; //default to pixel when no unit was set
+                    continue;
                 }
-                continue;
             }
             // get reference option, ie. whether show original document url?
             if (preg_match('/noreference/',$token)){
