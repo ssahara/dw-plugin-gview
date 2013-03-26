@@ -12,10 +12,9 @@
  *
  * Google Docs Viewer plugin
  * Shows a online document using Google Docs Viewer Service.
- * SYNTAX: {{gview> url}} 
- *         {{gview> url height}}
- *         {{gview> url width,height}}
- *         {{gview> url width,height noreference}}
+ * SYNTAX: {{gview> media_id}} 
+ *         {{gview> {{media_id|title}} height}}
+ *         {{gview> {{url|title}} noreference}}
  */
 
 // must be run within Dokuwiki
@@ -28,8 +27,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
     public function getPType() { return 'normal'; }
     public function getSort()  { return 305; }
     public function connectTo($mode) {
-        //$this->Lexer->addSpecialPattern('{{gview>.*?}}',$mode,'plugin_gview');
-        $this->Lexer->addSpecialPattern('{{gview>{{[^}\n]+}}[^}\n]*}}',$mode,'plugin_gview');
+        $this->Lexer->addSpecialPattern('{{gview> *{{[^}\n]+}}[^}\n]*}}',$mode,'plugin_gview');
         $this->Lexer->addSpecialPattern('{{gview>[^}\n]+}}',$mode,'plugin_gview');
     }
 
