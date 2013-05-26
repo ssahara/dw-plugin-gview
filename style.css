@@ -1,16 +1,16 @@
 /**
- * GView plugin CSS
+ * Style sheet for Gview plugin
  */
 
-div.tpl_gview{
+div.obj_container,
+div.obj_container_pdf,
+div.obj_container_gview {
 	margin:0;
-	color: grey;
 	background-color: transparent;
-	font-size: 70%;
+	/* border: 1px dotted grey; */
 }
-div.tpl_gview iframe{
-	border-top: none;
-	border-right: none;
-	border-bottom: 1px solid #eee;
-	border-left: 1px solid #eee;
+
+div.obj_note {
+	color: grey;
+	font-size: 70%;
 }

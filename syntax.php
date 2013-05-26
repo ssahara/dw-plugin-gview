@@ -12,9 +12,8 @@
  *
  * Google Docs Viewer plugin
  * Shows a online document using Google Docs Viewer Service.
- * SYNTAX: {{gview> media_id}} 
- *         {{gview> {{media_id|title}} height}}
- *         {{gview> {{url|title}} noreference}}
+ * SYNTAX: {{gview [size] [noembed] [noreference] > mediaID|title }}
+ *         {{obj:[class] [size] [noembed] [noreference] > mediaID|title }}
  */
 
 // must be run within Dokuwiki
@@ -27,48 +26,58 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
     public function getPType() { return 'normal'; }
     public function getSort()  { return 305; }
     public function connectTo($mode) {
-        $this->Lexer->addSpecialPattern('{{gview> *{{[^}\n]+}}[^}\n]*}}',$mode,'plugin_gview');
-        $this->Lexer->addSpecialPattern('{{gview>[^}\n]+}}',$mode,'plugin_gview');
+        $this->Lexer->addSpecialPattern('{{gview.*?\>.*{{.+?}}[^\n]*}}',$mode,'plugin_gview');
+        $this->Lexer->addSpecialPattern('{{gview.*?\>.*?}}',$mode,'plugin_gview');
+
+        // trick pattern :-)
+        $this->Lexer->addSpecialPattern('{{obj:.*?\>.*{{.+?}}[^\n]*}}',$mode,'plugin_gview');
+        $this->Lexer->addSpecialPattern('{{obj:.*?\>.*?}}',$mode,'plugin_gview');
     }
 
- /**
-  * handle syntax
-  */
+    /**
+     * show syntax in preview mode
+     */
+    function _show_usage() {
+        $syntax ='{{gview [size] [noembed] [noreference] > mediaID|title }}';
+        msg('Gview plugin usage: '.$syntax,-1);
+    }
+
+
+    /**
+     * handle syntax
+     */
     public function handle($match, $state, $pos, &$handler){
 
-        $match = trim(substr($match,8,-2));  // strip markup
         $opts = array( // set default
-                     'id'  => '',
-                     'title'  => $this->getLang('gview_linktext'),
+                     'id'      => '',
+                     'title'   => $this->getLang('gview_linktext'),
+                     'class'   => '',
                      'width'   => '100%',
                      'height'  => '300px',
                      'embedded' => true,
                      'reference'  => true,
-                     'border'  => true,
+                     //'border'  => false,
                      );
 
-        // get url for viewer
-        if (preg_match('/(https?:\/\/[^ |}]+)[ |}]/u', $match, $matches)) {
-            $url = $matches[1];
-        }
-        // get media ID stored data/media directory
-        if (preg_match('/(:[^ |}]+)[ |}]/u', $match, $matches)) {
-            $opts['id'] = $matches[1];
-        }
-        // get title (linktext)
-        if (preg_match('/\|([^}]+)}/u', $match, $matches)) {
-            $opts['title'] = $matches[1];
-        } elseif (preg_match('/\|(\w+) /u', $match, $matches)) {
-            $opts['title'] = $matches[1];
-        }
-        if ($url) $opts['id'] = $url;
+        list($params, $media) = explode('>',$match,2);
 
-        $tokens = preg_split('/\s+/', $match);
+        // handle viewer parameters
+        // split phrase of parameters by white space
+        $tokens = preg_split('/\s+/', $params);
+        
+        // check frist markup
+        $markup = array_shift($tokens); // first param
+        if (strpos($markup,'gview') !== false) {
+            $opts['class'] = 'gview';
+        } elseif (strlen($markup) > 6) {
+            $opts['class'] = substr($markup,6); // strip "{{obj:"
+        }
+
         foreach ($tokens as $token) {
 
             // get width and height of iframe
             $matches=array();
-            if (preg_match('/(\d+(%|em|pt|px)?)\s*([,xX]\s*(\d+(%|em|pt|px)?))?/',$token,$matches)){
+            if (preg_match('/(\d+(%|em|pt|px)?)([,xX](\d+(%|em|pt|px)?))?/',$token,$matches)){
                 if ($matches[4]) {
                     // width and height was given
                     $opts['width'] = $matches[1];
@@ -84,71 +93,66 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
                 }
             }
             // get reference option, ie. whether show original document url?
-            if (preg_match('/noreference/',$token)){
+            if (preg_match('/no(reference|link)/',$token)) {
                 $opts['reference'] = false;
                 continue;
             }
             // get embed option
-            if (preg_match('/noembed(ded)?/',$token)){
+            if (preg_match('/noembed(ded)?/',$token)) {
                 $opts['embedded'] = false;
-                $opts['reference'] = false;
                 continue;
             }
             // get border option
-            if (preg_match('/no(frame)?border/',$token)){
+            if (preg_match('/no(frame)?border/',$token)) {
               $opts['border'] = false;
               continue;
             }
         }
+
+        // handle media parameters (ID and title)
+        $media = trim($media, ' {}');
+        if ((strpos($media,' ') !== false) && ($opts['class'] =='gview')) {
+            // likely wrong usage (older syntax used)
+            $this->_show_usage();
+        }
+
+        if (strpos($media,'|') !== false) {
+            list($media, $title) = explode('|',$media,2);
+        }
+        $opts['id'] = trim($media);
+        if (!empty($title)) $opts['title'] = trim($title);
+
         return array($state, $opts);
     }
 
- /**
-  * Render iframe or link for Google Docs Viewer Service
-  */
+    /**
+     * Render iframe or link for Google Docs Viewer Service
+     */
     public function render($mode, &$renderer, $data) {
-
-        $viewerurl = 'http://docs.google.com/viewer';
 
         if ($mode != 'xhtml') return false;
 
         list($state, $opts) = $data;
-        //if ( $opts['url'] =='') return false;
+        if ( $opts['id'] =='') return false;
 
-        // make reference link
-        $url = $this->_gview_ml($opts['id']);
-        $referencelink = '<a href="'.$url.'">'.urldecode($url).'</a>';
-
-        $html = '<div class="tpl_gview">'.NL;
-        if ($opts['reference']) {
-            $html.= sprintf($this->getLang('gview_reference_msg'), $referencelink);
-            $html.= '<br />'.NL;
+        switch ($opts['class']) {
+            case 'gview':
+                $html = $this->_html_embed_gview($opts);
+                break;
+            default:
+                $html = $this->_html_embed($opts);
+                break;
         }
-        if ($opts['embedded']) {
-            $html.= '<iframe src="'.$viewerurl;
-            $html.= '?url='.urlencode($url);
-            $html.= '&embedded=true"';
-            $html.= ' style="';
-            if ($opts['width'])  { $html.= ' width: '.$opts['width'].';'; }
-            if ($opts['height']) { $html.= ' height: '.$opts['height'].';'; }
-            if ($opts['border'] == false) { $html.= ' border: none;'; }
-            $html.= '"></iframe>'.NL;
-        } else {
-            $html.= '<a href="'.$viewerurl.'?url='.urlencode($url).'"';
-            $html.= ' title="'.urldecode($url).'"';
-            $html.= '>'.$opts['title'].'</a>'.NL;
-        }
-        $html.= '</div>'.NL;
         $renderer->doc.=$html;
         return true;
     }
 
-     /**
-      * Create Media Link from DokuWiki media id
-      * as to $conf['userewrite'] parameter.
-      * @see function ml() in inc/common.php
-      */
-    function _gview_ml($id ='') {
+    /**
+     * Create Media Link from DokuWiki media id
+     * as to $conf['userewrite'] parameter.
+     * @see function ml() in inc/common.php
+     */
+    function _suboptimal_ml($id ='') {
         global $conf;
         // external URLs are always direct without rewriting
         if(preg_match('#^(https?|ftp)://#i', $id)) {
@@ -176,6 +180,77 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
             $xlink .= str_replace(':','/',$id);
         }
         return $xlink;
+    }
+
+    /**
+     * Generate html for sytax {{obj:>}}
+     */
+    function _html_embed($opts) {
+
+        // make reference link
+        $url = $this->_suboptimal_ml($opts['id']);
+        $referencelink = '<a href="'.$url.'">'.urldecode($url).'</a>';
+
+        if (empty($opts['class'])) {
+            $html = '<div class="obj_container">'.NL;
+        } else {
+            $html = '<div class="obj_container_'.$opts['class'].'">'.NL;
+        }
+        if (!$opts['embedded']) {
+            $html.= $referencelink;
+        } else {
+            if ($opts['reference']) {
+                $html.= '<div class="obj_note">';
+                $html.= sprintf($this->getLang('reference_msg'), $referencelink);
+                $html.= '<div />'.NL;
+            }
+            $html.= '<object data="'.urldecode($url).'"';
+            $html.= ' style="';
+            if ($opts['width'])  { $html.= ' width: '.$opts['width'].';'; }
+            if ($opts['height']) { $html.= ' height: '.$opts['height'].';'; }
+            $html.= '">'.NL;
+            $html.= '</object>'.NL;
+        }
+        $html.= '</div>'.NL;
+
+        return $html;
+    }
+
+    /**
+     * Generate html for sytax {{obj:gview>}} or {{gview>}}
+     *
+     * @see also: https://docs.google.com/viewer#
+     */
+    function _html_embed_gview($opts) {
+
+        $viewerurl = 'http://docs.google.com/viewer';
+
+        // make reference link
+        $url = $this->_suboptimal_ml($opts['id']);
+        $referencelink = '<a href="'.$url.'">'.urldecode($url).'</a>';
+
+        $html = '<div class="obj_container_gview">'.NL;
+        if (!$opts['embedded']) {
+            $html.= $referencelink;
+        } else {
+            if ($opts['reference']) {
+                $html.= '<div class="obj_note">';
+                $html.= sprintf($this->getLang('reference_msg'), $referencelink);
+                $html.= '<div />'.NL;
+            }
+            $html.= '<iframe src="'.$viewerurl;
+            $html.= '?url='.urlencode($url);
+            $html.= '&embedded=true"';
+            $html.= ' style="';
+            if ($opts['width'])  { $html.= ' width: '.$opts['width'].';'; }
+            if ($opts['height']) { $html.= ' height: '.$opts['height'].';'; }
+            //if ($opts['border'] == false) { $html.= ' border: none;'; }
+            $html.= ' border: none;';
+            $html.= '"></iframe>'.NL;
+        }
+        $html.= '</div>'.NL;
+
+        return $html;
     }
 
 }
