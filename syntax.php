@@ -26,11 +26,9 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
     public function getPType() { return 'normal'; }
     public function getSort()  { return 305; }
     public function connectTo($mode) {
-        $this->Lexer->addSpecialPattern('{{gview.*?\>.*{{.+?}}[^\n]*}}',$mode,'plugin_gview');
         $this->Lexer->addSpecialPattern('{{gview.*?\>.*?}}',$mode,'plugin_gview');
 
         // trick pattern :-)
-        $this->Lexer->addSpecialPattern('{{obj:.*?\>.*{{.+?}}[^\n]*}}',$mode,'plugin_gview');
         $this->Lexer->addSpecialPattern('{{obj:.*?\>.*?}}',$mode,'plugin_gview');
     }
 
