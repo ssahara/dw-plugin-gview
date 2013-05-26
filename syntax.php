@@ -200,7 +200,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
             if ($opts['reference']) {
                 $html.= '<div class="obj_note">';
                 $html.= sprintf($this->getLang('reference_msg'), $referencelink);
-                $html.= '<div />'.NL;
+                $html.= '</div>'.NL;
             }
             $html.= '<object data="'.urldecode($url).'"';
             $html.= ' style="';
@@ -234,7 +234,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
             if ($opts['reference']) {
                 $html.= '<div class="obj_note">';
                 $html.= sprintf($this->getLang('reference_msg'), $referencelink);
-                $html.= '<div />'.NL;
+                $html.= '</div>'.NL;
             }
             $html.= '<iframe src="'.$viewerurl;
             $html.= '?url='.urlencode($url);
