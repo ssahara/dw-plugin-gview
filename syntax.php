@@ -35,7 +35,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
     /**
      * show syntax in preview mode
      */
-    function _show_usage() {
+    private function _show_usage() {
         $syntax ='{{gview [size] [noembed] [noreference] > mediaID|title }}';
         msg('Gview plugin usage: '.$syntax,-1);
     }
@@ -150,7 +150,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
      * as to $conf['userewrite'] parameter.
      * @see function ml() in inc/common.php
      */
-    function _suboptimal_ml($id ='') {
+    private function _suboptimal_ml($id ='') {
         global $conf;
         // external URLs are always direct without rewriting
         if(preg_match('#^(https?|ftp)://#i', $id)) {
@@ -183,7 +183,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
     /**
      * Generate html for sytax {{obj:>}}
      */
-    function _html_embed($opts) {
+    private function _html_embed($opts) {
 
         // make reference link
         $url = $this->_suboptimal_ml($opts['id']);
@@ -219,7 +219,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
      *
      * @see also: https://docs.google.com/viewer#
      */
-    function _html_embed_gview($opts) {
+    private function _html_embed_gview($opts) {
 
         $viewerurl = 'http://docs.google.com/viewer';
 
