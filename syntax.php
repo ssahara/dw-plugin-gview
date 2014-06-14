@@ -52,6 +52,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
         if(preg_match('#^https?://#i', $linkId)) {  return $linkId; }
 
         resolve_mediaid(getNS($ID), $linkId, $exists);
+        $linkId = idfilter($linkId);
         if (!$exists && ($ACT=='preview')) {
             msg($this->getPluginName().': media file not exists: '.$linkId, -1);
             return false;

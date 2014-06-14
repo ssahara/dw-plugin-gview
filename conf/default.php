@@ -5,4 +5,3 @@
  */
 
 $conf['alternative_mediadir'] = '/_media/';
-$conf['debug'] = 0;

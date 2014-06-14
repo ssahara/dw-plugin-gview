@@ -5,4 +5,3 @@
  */
 
 $meta['alternative_mediadir'] = array('string');
-$meta['debug'] = array('onoff');
