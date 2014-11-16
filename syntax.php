@@ -108,7 +108,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
     /**
      * handle syntax
      */
-    public function handle($match, $state, $pos, &$handler){
+    public function handle($match, $state, $pos, Doku_Handler $handler){
 
         $opts = array( // set default
                      'id'      => '',
@@ -183,9 +183,9 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
     /**
      * Render iframe or link for Google Docs Viewer Service
      */
-    public function render($mode, &$renderer, $data) {
+    public function render($format, Doku_Renderer $renderer, $data) {
 
-        if ($mode != 'xhtml') return false;
+        if ($format != 'xhtml') return false;
 
         list($state, $opts) = $data;
         if ( $opts['id'] =='') return false;
