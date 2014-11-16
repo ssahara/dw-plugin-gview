@@ -217,7 +217,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
             $html = '<div class="obj_container_'.$opts['class'].'">'.NL;
         }
         if (!$opts['embedded']) {
-            $html.= $referencelink;
+            $html.= '<a href="'.$url.'">'.$opts['title'].'</a>';
         } else {
             if ($opts['reference']) {
                 $html.= '<div class="obj_note">';
@@ -249,7 +249,7 @@ class syntax_plugin_gview extends DokuWiki_Syntax_Plugin {
 
         $html = '<div class="obj_container_gview">'.NL;
         if (!$opts['embedded']) {
-            $html.= $referencelink;
+            $html.= '<a href="'.$url.'">'.$opts['title'].'</a>';
         } else {
             if ($opts['reference']) {
                 $html.= '<div class="obj_note">';
